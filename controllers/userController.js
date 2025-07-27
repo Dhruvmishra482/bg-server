@@ -15,17 +15,23 @@ const clerkWebhooks = async (req, res) => {
     const { type, data } = req.body;
 
     switch (type) {
-      case "user.created": {
-        const userData = {
-          clerkId: data.id,
-          email: data.email_addresses[0].email_address,
-          firstName: data.first_name,
-          lastName: data.last_name,
-          photo: data.image_url,
-        };
-        await userModel.create(userData);
-        return res.json({});
-      }
+    case 'user.created': {
+    if (!data || !data.id || !data.email_addresses || data.email_addresses.length === 0) {
+        return res.status(400).json({ success: false, message: 'Invalid user data received from Clerk' });
+    }
+
+    const userData = {
+        clerkId: data.id,
+        email: data.email_addresses[0].email_address,
+        firstName: data.first_name || '',
+        lastName: data.last_name || '',
+        photo: data.image_url || '',
+    }
+
+    await userModel.create(userData);
+    return res.status(200).json({ success: true, message: 'User created' });
+}
+
 
       case "user.updated": {
         const userData = {
